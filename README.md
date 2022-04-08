@@ -1,7 +1,7 @@
 # MSC_SEM
-SEMESTER_II COMPUTER SCIENCE
+# SEMESTER_II COMPUTER SCIENCE
 
-#Name : Laxmi Ramchandra Shejwal 
+# Name : Laxmi Ramchandra Shejwal 
 
-#Roll.NO.:-17
+# Roll.NO.:-17
 
