@@ -1,0 +1,79 @@
+#install required libraries
+import pandas as pd
+import numpy as np
+#data visualization packages
+import matplotlib.pyplot as plt
+#keras packages
+import keras
+from keras.models import Sequential
+from keras.layers import Convolution2D
+from keras.layers import MaxPooling2D
+from keras.layers import Flatten
+from keras.layers import Dense
+from keras.wrappers.scikit_learn import KerasClassifier
+from keras.layers import Dropout
+#model evaluation packages
+from sklearn.metrics import f1_score, roc_auc_score, log_loss
+from sklearn.model_selection import cross_val_score, cross_validate
+
+import tensorflow.keras as tk
+
+
+#read mnist fashion dataset
+mnist = tk.datasets.mnist
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
+
+#reshape data from 3-D to 2-D array
+X_train = X_train.reshape(60000, 784)
+X_test = X_test.reshape(10000, 784)
+#feature scaling
+from sklearn.preprocessing import MinMaxScaler
+minmax = MinMaxScaler()
+#fit and transform training dataset
+X_train = minmax.fit_transform(X_train)
+#transform testing dataset
+X_test = minmax.transform(X_test)
+print('Number of unique classes: ', len(np.unique(y_train)))
+print('Classes: ', np.unique(y_train))
+
+fig, axes = plt.subplots(nrows=2, ncols=5,figsize=(15,5))          
+ax = axes.ravel()
+for i in range(10):
+    ax[i].imshow(X_train[i].reshape(28,28))
+    ax[i].title.set_text('Class: ' + str(y_train[i]))              
+plt.subplots_adjust(hspace=0.5)                                    
+plt.show()
+
+#initializing CNN model
+classifier_e25 = Sequential()
+#add 1st hidden layer
+classifier_e25.add(Dense(input_dim = X_train.shape[1], units = 256, kernel_initializer='uniform', activation='relu'))
+#add output layer
+classifier_e25.add(Dense(units = 10, kernel_initializer='uniform', activation='softmax'))
+#compile the neural network
+classifier_e25.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+#model summary
+classifier_e25.summary()
+#fit training dataset into the model
+classifier_e25_fit = classifier_e25.fit(X_train, y_train, epochs=25, verbose=1)
+
+#evaluate the model for testing dataset
+test_loss_e25 = classifier_e25.evaluate(X_test, y_test, verbose=0)
+#calculate evaluation parameters
+predict_x=classifier_e25.predict(X_test) 
+classes_x=np.argmax(predict_x,axis=1)
+
+
+
+y_prob = classifier_e25.predict(X_test )
+
+f1_e25 = f1_score(y_test,classes_x, average='micro')
+roc_e25 = roc_auc_score(y_test, y_prob , multi_class='ovo')
+#create evaluation dataframe
+stats_e25 = pd.DataFrame({'Test accuracy' :  round(test_loss_e25[1]*100,3),
+                      'F1 score'      : round(f1_e25,3),
+                      'ROC AUC score' : round(roc_e25,3),
+                      'Total Loss'    : round(test_loss_e25[0],3)}, index=[0])
+#print evaluation dataframe
+display(stats_e25)
